@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f6f5c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Family Hub</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">◆</span>
+      <span id="familyName">Family Hub</span>
+    </div>
+    <div class="month-nav">
+      <button class="icon-btn" id="prevMonth" aria-label="Previous month">‹</button>
+      <h1 id="monthTitle">Month</h1>
+      <button class="icon-btn" id="nextMonth" aria-label="Next month">›</button>
+      <button class="btn ghost" id="todayBtn">Today</button>
+    </div>
+    <nav class="actions">
+      <button class="btn primary" id="addBtn">+ Add</button>
+      <button class="btn ghost" id="jobsBtn">Jobs &amp; pay</button>
+      <button class="btn ghost local-only" id="phoneBtn" hidden>Connect phone</button>
+      <button class="btn ghost" id="settingsBtn" aria-label="Settings">Settings</button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <section class="calendar-wrap">
+      <div class="weekdays">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="legend">
+        <span><i class="dot bill"></i>Bill</span>
+        <span><i class="dot paycheck"></i>Paycheck</span>
+        <span><i class="dot birthday"></i>Birthday</span>
+        <span><i class="dot dayoff"></i>Day off</span>
+        <span><i class="dot other"></i>Other</span>
+      </div>
+    </section>
+
+    <aside class="money" id="money">
+      <div class="card balance-card">
+        <div class="label">Bank balance</div>
+        <div class="big" id="balance">$0.00</div>
+        <div class="muted small" id="balanceAsOf"></div>
+        <button class="btn ghost small-btn" id="editBalance">Update balance</button>
+      </div>
+
+      <div class="card">
+        <div class="label" id="monthMoneyTitle">This month</div>
+        <div class="stat-row"><span>Paychecks</span><b class="pos" id="incomeTotal">$0</b></div>
+        <div class="stat-row"><span>Bills</span><b class="neg" id="billsTotal">$0</b></div>
+        <div class="stat-row total"><span>Left after bills</span><b id="leftAfter">$0</b></div>
+      </div>
+
+      <div class="card" id="forecastCard">
+        <div class="label">Forecast</div>
+        <div class="stat-row"><span>Balance at month end</span><b id="endBalance">–</b></div>
+        <div class="stat-row"><span>Lowest point</span><b id="lowest">–</b></div>
+        <div class="warn" id="lowWarn" hidden></div>
+      </div>
+
+      <div class="card">
+        <div class="label">Money in &amp; out this month</div>
+        <ul class="ledger" id="ledger"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <div class="mobile-menu">
+    <button class="btn ghost" id="jobsBtnMobile">Jobs &amp; pay</button>
+    <button class="btn ghost" id="settingsBtnMobile">Settings</button>
+  </div>
+
+  <!-- Day details -->
+  <dialog id="dayDialog">
+    <form method="dialog" class="sheet">
+      <header><h2 id="dayTitle">Day</h2><button class="icon-btn" value="close" aria-label="Close">✕</button></header>
+      <ul class="day-list" id="dayList"></ul>
+      <footer><button type="button" class="btn primary" id="dayAdd">+ Add on this day</button></footer>
+    </form>
+  </dialog>
+
+  <!-- Add / edit event -->
+  <dialog id="eventDialog">
+    <form class="sheet" id="eventForm">
+      <header><h2 id="eventDialogTitle">Add event</h2><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></header>
+      <div class="type-pills" id="typePills">
+        <label><input type="radio" name="type" value="bill" checked><span class="bill">Bill</span></label>
+        <label><input type="radio" name="type" value="paycheck"><span class="paycheck">Paycheck</span></label>
+        <label><input type="radio" name="type" value="birthday"><span class="birthday">Birthday</span></label>
+        <label><input type="radio" name="type" value="dayoff"><span class="dayoff">Day off</span></label>
+        <label><input type="radio" name="type" value="other"><span class="other">Other</span></label>
+      </div>
+      <label class="field">Title<input name="title" required placeholder="e.g. Electric bill"></label>
+      <div class="row">
+        <label class="field">Date<input type="date" name="date" required></label>
+        <label class="field">Repeats
+          <select name="recurrence">
+            <option value="none">Doesn't repeat</option>
+            <option value="weekly">Every week</option>
+            <option value="biweekly">Every 2 weeks</option>
+            <option value="monthly">Every month</option>
+            <option value="yearly">Every year</option>
+          </select>
+        </label>
+      </div>
+      <div class="row" data-show="bill paycheck">
+        <label class="field">Amount ($)<input type="number" name="amount" step="0.01" min="0" inputmode="decimal"></label>
+      </div>
+      <div data-show="dayoff">
+        <div class="row">
+          <label class="field">Job
+            <select name="jobId"><option value="">— none —</option></select>
+          </label>
+          <label class="field">Hours missed<input type="number" name="hours" step="0.25" min="0" placeholder="Full day"></label>
+        </div>
+        <label class="check"><input type="checkbox" name="unpaid"> Unpaid (take it out of the paycheck)</label>
+      </div>
+      <label class="field">Who<input name="person" placeholder="Optional"></label>
+      <label class="field">Notes<textarea name="notes" rows="2" placeholder="Optional"></textarea></label>
+      <p class="error" id="eventError" hidden></p>
+      <footer>
+        <button type="button" class="btn danger" id="deleteEvent" hidden>Delete</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Paycheck breakdown -->
+  <dialog id="payDialog">
+    <form method="dialog" class="sheet">
+      <header><h2 id="payTitle">Paycheck</h2><button class="icon-btn" value="close" aria-label="Close">✕</button></header>
+      <div id="payBody"></div>
+      <p class="muted small">This is an estimate built from the job's rate, schedule, tax % and unpaid days off. Check it against your real pay stub.</p>
+      <footer><span class="spacer"></span><button type="button" class="btn ghost" id="payEditJob">Edit job</button></footer>
+    </form>
+  </dialog>
+
+  <!-- Jobs -->
+  <dialog id="jobsDialog">
+    <form method="dialog" class="sheet wide">
+      <header><h2>Jobs &amp; pay</h2><button class="icon-btn" value="close" aria-label="Close">✕</button></header>
+      <p class="muted small">Add each job in the house. Paydays and estimated take-home pay show up on the calendar automatically.</p>
+      <ul class="job-list" id="jobList"></ul>
+      <footer><button type="button" class="btn primary" id="addJob">+ Add job</button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="jobDialog">
+    <form class="sheet" id="jobForm">
+      <header><h2 id="jobDialogTitle">Add job</h2><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></header>
+      <div class="row">
+        <label class="field">Job name<input name="name" required placeholder="e.g. Warehouse"></label>
+        <label class="field">Who<input name="person" placeholder="e.g. Mom"></label>
+      </div>
+      <div class="row">
+        <label class="field">Paid
+          <select name="payType"><option value="hourly">Hourly</option><option value="salary">Salary</option></select>
+        </label>
+        <label class="field"><span id="rateLabel">Hourly rate ($)</span><input type="number" name="rate" step="0.01" min="0" required inputmode="decimal"></label>
+      </div>
+      <div class="row">
+        <label class="field">Hours per week<input type="number" name="hoursPerWeek" step="0.25" min="0" value="40"></label>
+        <label class="field">Hours per day<input type="number" name="hoursPerDay" step="0.25" min="0" value="8"></label>
+      </div>
+      <div class="row">
+        <label class="field">Paid how often
+          <select name="frequency">
+            <option value="weekly">Every week</option>
+            <option value="biweekly" selected>Every 2 weeks</option>
+            <option value="semimonthly">15th and last day</option>
+            <option value="monthly">Once a month</option>
+          </select>
+        </label>
+        <label class="field">A recent payday<input type="date" name="anchorPayDate" required></label>
+      </div>
+      <div class="row">
+        <label class="field">Taxes (% of gross)<input type="number" name="taxPercent" step="0.1" min="0" max="100" value="20"></label>
+        <label class="field">Other deductions per check ($)<input type="number" name="deductionsPerCheck" step="0.01" min="0" value="0"></label>
+      </div>
+      <p class="muted small">Tip: to get your tax %, divide (gross − net − deductions) by gross on a recent pay stub.</p>
+      <p class="error" id="jobError" hidden></p>
+      <footer>
+        <button type="button" class="btn danger" id="deleteJob" hidden>Delete</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn ghost" data-close>Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Balance -->
+  <dialog id="balanceDialog">
+    <form class="sheet narrow" id="balanceForm">
+      <header><h2>Update bank balance</h2><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></header>
+      <p class="muted small">Type in what your bank shows right now. The forecast counts paychecks and bills from tomorrow on.</p>
+      <label class="field">Balance ($)<input type="number" name="balance" step="0.01" required inputmode="decimal"></label>
+      <label class="field">As of<input type="date" name="asOf" required></label>
+      <footer><span class="spacer"></span><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn primary">Save</button></footer>
+    </form>
+  </dialog>
+
+  <!-- Settings -->
+  <dialog id="settingsDialog">
+    <form class="sheet narrow" id="settingsForm">
+      <header><h2>Settings</h2><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></header>
+      <label class="field">Family name<input name="familyName" required></label>
+      <footer><span class="spacer"></span><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn primary">Save</button></footer>
+    </form>
+  </dialog>
+
+  <!-- Connect phone (PC only) -->
+  <dialog id="phoneDialog">
+    <form method="dialog" class="sheet narrow">
+      <header><h2>Connect your phone</h2><button class="icon-btn" value="close" aria-label="Close">✕</button></header>
+      <ol class="steps">
+        <li>Join your phone to the <b>same Wi-Fi</b> as this PC.</li>
+        <li>Scan the code with your camera, or type the address into the phone's browser.</li>
+        <li>Enter the PIN below.</li>
+      </ol>
+      <div class="qr" id="qr"></div>
+      <div class="connect-urls" id="connectUrls"></div>
+      <div class="pin-box">PIN <b id="pinValue">------</b></div>
+      <p class="muted small">Tip: on the phone, use "Add to Home Screen" so it opens like an app. If it won't load, allow Family Hub through Windows Firewall on private networks.</p>
+      <footer><button type="button" class="btn ghost" id="newPin">Make a new PIN</button><span class="spacer"></span><button class="btn primary" value="close">Done</button></footer>
+    </form>
+  </dialog>
+
+  <!-- PIN prompt (phones) -->
+  <dialog id="pinDialog">
+    <form class="sheet narrow" id="pinForm">
+      <header><h2>Enter family PIN</h2></header>
+      <p class="muted small">You'll find it on the PC under "Connect phone".</p>
+      <label class="field">PIN<input name="pin" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" required></label>
+      <p class="error" id="pinError" hidden>That PIN didn't work.</p>
+      <footer><span class="spacer"></span><button class="btn primary">Unlock</button></footer>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

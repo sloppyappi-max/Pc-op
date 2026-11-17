@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The Windows app: a window that starts the local server and shows the calendar. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>FamilyHub</AssemblyName>
+    <RootNamespace>FamilyHub.Desktop</RootNamespace>
+    <Product>Family Hub</Product>
+    <Version>0.1.0</Version>
+    <!-- Allows compiling on Linux/macOS build machines; the app itself runs on Windows. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <ProjectReference Include="..\FamilyHub.Server\FamilyHub.Server.csproj" />
+  </ItemGroup>
+
+</Project>
